@@ -11,7 +11,6 @@
   <!-- Google Fonts: Cairo -->
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <style>
-  
     /* الإعدادات العامة */
     body {
       font-family: 'Cairo', sans-serif;
@@ -23,7 +22,7 @@
     }
     /* رأس الصفحة */
     header {
-      background: rgb(0, 123, 255);
+      background: rgb(66, 3, 255);
       color: rgb(255, 255, 255);
       padding: 1rem;
       text-align: center;
@@ -35,7 +34,7 @@
       font-size: 1.8rem;
       font-weight: bold;
     }
-    /* شريط التنقل (بدون خلفية زرقاء) */
+    /* شريط التنقل */
     nav.main-nav {
       background: transparent;
       padding: 0.5rem 0;
@@ -74,6 +73,18 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       margin-bottom: 1.5rem;
     }
+    /* تنسيق اسطوانة البحث */
+    #searchInput {
+      border: 2px solid rgb(0,123,255);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      padding: 0.5rem 1rem;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+    #searchInput:focus {
+      border-color: rgb(0,86,179);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
     /* بطاقات الطلبات */
     .order-card {
       border: none;
@@ -88,7 +99,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .order-card .card-header {
-      background: rgb(0, 123, 255);
+      background: rgb(66, 3, 255);
       color: rgb(255, 255, 255);
       text-align: center;
       font-size: 1.2rem;
@@ -111,21 +122,29 @@
       border-bottom-right-radius: 20px;
       transition: background 0.3s;
     }
-    /* تلوين كلمة الحالة داخل بطاقة الطلب */
-    .order-card .card-body p .status {
+    /* تنسيق حالة الطلب داخل البطاقة بدون حدود */
+    .order-card .card-body p.status {
+      display: block;
+      text-align: center;
       font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.5rem 1rem;
+      /* تمت إزالة خاصية الحد */
+      margin: 1rem auto;
+      width: fit-content;
     }
-    .order-card .card-body p .status[data-status="موافقة"] {
-      color: rgb(40, 167, 69);
+    /* تلوين النص بناءً على الحالة */
+    .order-card .card-body p.status[data-status="انتظار الموافقة"] {
+      color:#FF9800;
     }
-    .order-card .card-body p .status[data-status="تجهيز"] {
-      color: rgb(255, 193, 7);
+    .order-card .card-body p.status[data-status="تجهيز"] {
+      color: #3F51B5;
     }
-    .order-card .card-body p .status[data-status="توصيل"] {
-      color: rgb(23, 162, 184);
+    .order-card .card-body p.status[data-status="توصيل"] {
+      color: #009688;
     }
-    .order-card .card-body p .status[data-status="تم تسليم"] {
-      color: rgb(0, 128, 128);
+    .order-card .card-body p.status[data-status="تم تسليم"] {
+      color: #8E24AA;
     }
     /* زر تبديل الوضع الداكن */
     #darkModeBtn {
@@ -149,7 +168,6 @@
     #darkModeBtn:hover {
       background: rgb(0, 86, 179);
     }
-    /* تأثير دوران للأيقونة */
     #darkModeBtn i {
       transition: transform 0.5s ease;
     }
@@ -159,10 +177,10 @@
     /* تأثيرات الوضع الداكن */
     .dark-mode {
       background: rgb(34, 34, 34);
-      color: rgb(238, 238, 238);
+      color: rgb(0, 0, 0);
     }
     .dark-mode header {
-      background: rgb(68, 68, 68);
+      background: rgb(66, 3, 255);
     }
     .dark-mode nav.main-nav ul li {
       color: rgb(238, 238, 238);
@@ -175,11 +193,11 @@
     .dark-mode .filter-panel,
     .dark-mode .order-card,
     .dark-mode .order-card .card-footer {
-      background: rgb(51, 51, 51);
+      background: rgb(0, 0, 0);
       color: rgb(238, 238, 238);
     }
     .dark-mode .order-card .card-header {
-      background: rgb(68, 68, 68);
+      background: rgb(66, 3, 255);
     }
   </style>
 </head>
@@ -188,7 +206,7 @@
   <header>
     <div class="logo">لوحة متابعة الطلبات</div>
   </header>
-  <!-- شريط التنقل (بدون خلفية زرقاء) -->
+  <!-- شريط التنقل -->
   <nav class="main-nav">
     <ul>
       <li id="tabOrders" class="active">الطلبات</li>
@@ -201,28 +219,33 @@
     <section id="sectionOrders">
       <!-- لوحة الفلاتر -->
       <div class="filter-panel mb-4">
-        <div class="row g-3">
-          <div class="col-md-3">
-            <input type="date" id="dateFilter" class="form-control" placeholder="تاريخ الطلب" />
+        <!-- صف مربع البحث -->
+        <div class="row mb-3">
+          <div class="col-12">
+            <input type="text" id="searchInput" class="form-control" placeholder="بحث برقم الطلب أو اسم الصيدلية أو رقم الهاتف أو العنوان" oninput="renderOrders(this.value)" />
           </div>
-          <div class="col-md-3">
-            <select id="statusFilter" class="form-select">
+        </div>
+        <!-- صف الفلاتر الأخرى -->
+        <div class="row g-3">
+          <div class="col-md-4">
+            <input type="date" id="dateFilter" class="form-control" placeholder="تاريخ الطلب" onchange="renderOrders(document.getElementById('searchInput').value)" />
+          </div>
+          <div class="col-md-4">
+            <select id="statusFilter" class="form-select" onchange="renderOrders(document.getElementById('searchInput').value)">
               <option value="">كل الحالات</option>
-              <option value="موافقة">موافقة</option>
+              <option value="انتظار الموافقة">انتظار الموافقة</option>
               <option value="تجهيز">تجهيز</option>
               <option value="توصيل">توصيل</option>
-              <option value="تسليم">تسليم</option>
+              <!-- جميع الحالات التي تشير إلى التسليم ستعرض كـ "تم تسليم" -->
+              <option value="تم تسليم">تم تسليم</option>
             </select>
           </div>
-          <div class="col-md-3">
-            <select id="sortFilter" class="form-select">
+          <div class="col-md-4">
+            <select id="sortFilter" class="form-select" onchange="renderOrders(document.getElementById('searchInput').value)">
               <option value="">ترتيب حسب</option>
               <option value="date_asc">الأقدم أولاً</option>
               <option value="date_desc">الأحدث أولاً</option>
             </select>
-          </div>
-          <div class="col-md-3">
-            <input type="text" id="searchInput" class="form-control" placeholder="بحث بالاسم أو الرقم" />
           </div>
         </div>
       </div>
@@ -270,7 +293,7 @@
   <!-- زر تبديل الوضع الداكن -->
   <button id="darkModeBtn"><i class="fas fa-moon"></i></button>
   
-  <!-- نافذة تفاصيل الطلب (مودال) مع إمكانية تعديل الحالة وإضافة ملاحظات إضافية وزر للطباعة -->
+  <!-- نافذة تفاصيل الطلب (مودال) -->
   <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
@@ -279,11 +302,11 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
         <div class="modal-body" id="orderDetailsContent">
-          <!-- سيتم حقن تفاصيل الطلب مع حقول تعديل الحالة هنا -->
+          <!-- سيتم حقن تفاصيل الطلب هنا -->
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger" onclick="deleteOrder()">حذف الطلب</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+          <button type="button" class="btn btn-danger" onclick="deleteOrder()">حذف الطلب</button>
           <button type="button" class="btn btn-info" onclick="printOrderDetails()">طباعة الطلب</button>
           <button type="button" class="btn btn-primary" onclick="changeOrderStatus()">تحديث الحالة</button>
         </div>
@@ -291,7 +314,7 @@
     </div>
   </div>
   
-  <!-- سكربتات Firebase و Bootstrap و Chart.js -->
+  <!-- سكربتات Firebase وBootstrap وChart.js -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -331,7 +354,24 @@
       }
     }
     
-    // عرض الطلبات مع تطبيق الفلاتر والبحث
+    // دالة لإرجاع رمز الأيقونة المناسب للحالة مع تطبيع صيغة التسليم
+    function getStatusIcon(status) {
+      const normalized = status.trim();
+      if (normalized === "انتظار الموافقة") {
+        // تغيير رمز "انتظار الموافقة" إلى رمز "fa-clock"
+        return '<i class="fas fa-clock"></i>';
+      } else if (normalized === "تجهيز") {
+        return '<i class="fas fa-cogs"></i>';
+      } else if (normalized === "توصيل") {
+        return '<i class="fas fa-truck"></i>';
+      } else if (normalized === "تسليم" || normalized === "تم تسليم" || normalized === "تم التسليم") {
+        return '<i class="fas fa-box-open"></i>';
+      } else {
+        return '';
+      }
+    }
+    
+    // دالة عرض الطلبات مع تطبيق الفلاتر والبحث
     function renderOrders(searchFilter = "") {
       const container = document.getElementById("ordersContainer");
       container.innerHTML = "";
@@ -342,8 +382,9 @@
       let filteredOrders = ordersData.filter(order => {
         const searchLower = searchFilter.toLowerCase();
         const matchesSearch = order.pharmacyName.toLowerCase().includes(searchLower) ||
-                              order.orderCode.includes(searchLower) ||
-                              order.pharmacyPhone.includes(searchLower);
+                              order.orderCode.toLowerCase().includes(searchLower) ||
+                              order.pharmacyPhone.toLowerCase().includes(searchLower) ||
+                              order.pharmacyAddress.toLowerCase().includes(searchLower);
         let matchesDate = true;
         if (selectedDate && order.orderDateObj) {
           const orderDateFormatted = order.orderDateObj.toISOString().slice(0,10);
@@ -351,7 +392,13 @@
         }
         let matchesStatus = true;
         if (selectedStatus) {
-          matchesStatus = order.status === selectedStatus;
+          let normalizedStatus = order.status.trim();
+          if(normalizedStatus === "موافقة") {
+            normalizedStatus = "انتظار الموافقة";
+          } else if(normalizedStatus === "تسليم" || normalizedStatus === "تم تسليم" || normalizedStatus === "تم التسليم") {
+            normalizedStatus = "تم تسليم";
+          }
+          matchesStatus = normalizedStatus === selectedStatus;
         }
         return matchesSearch && matchesDate && matchesStatus;
       });
@@ -365,7 +412,12 @@
       }
       
       filteredOrders.forEach(order => {
-        const displayStatus = order.status === "تسليم" ? "تم تسليم" : order.status;
+        let normalizedStatus = order.status.trim();
+        if(normalizedStatus === "موافقة") {
+          normalizedStatus = "انتظار الموافقة";
+        } else if(normalizedStatus === "تسليم" || normalizedStatus === "تم تسليم" || normalizedStatus === "تم التسليم") {
+          normalizedStatus = "تم تسليم";
+        }
         const orderHTML = `
           <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up">
             <div class="card order-card">
@@ -375,7 +427,8 @@
                 <p><strong>العنوان:</strong> ${order.pharmacyAddress}</p>
                 <p><strong>الهاتف:</strong> ${order.pharmacyPhone}</p>
                 <p><strong>التاريخ:</strong> ${order.orderDate}</p>
-                <p><strong>الحالة:</strong> <span class="status" data-status="${displayStatus}">${displayStatus}</span></p>
+                <p><strong>المجموع الكلي:</strong> ${order.total} IQD</p>
+                <p class="status" data-status="${normalizedStatus}">${getStatusIcon(normalizedStatus)} ${normalizedStatus}</p>
               </div>
               <div class="card-footer">
                 <button class="btn btn-sm btn-outline-info" onclick="showOrderDetails('${order.id}')">عرض التفاصيل</button>
@@ -387,15 +440,18 @@
       });
     }
     
-    // تحديث الرسم البياني
+    // تحديث الرسم البياني بناءً على حالة الطلبات
     let ordersChart;
     function updateChart() {
       const ctx = document.getElementById('ordersChart').getContext('2d');
       const statusCounts = {
-        'موافقة': ordersData.filter(o => o.status === "موافقة").length,
-        'تجهيز': ordersData.filter(o => o.status === "تجهيز").length,
-        'توصيل': ordersData.filter(o => o.status === "توصيل").length,
-        'تسليم': ordersData.filter(o => o.status === "تسليم").length
+        'انتظار الموافقة': ordersData.filter(o => o.status.trim() === "موافقة").length,
+        'تجهيز': ordersData.filter(o => o.status.trim() === "تجهيز").length,
+        'توصيل': ordersData.filter(o => o.status.trim() === "توصيل").length,
+        'تم تسليم': ordersData.filter(o => {
+          const norm = o.status.trim();
+          return (norm === "تسليم" || norm === "تم تسليم" || norm === "تم التسليم");
+        }).length
       };
       const chartData = {
         labels: Object.keys(statusCounts),
@@ -420,7 +476,7 @@
       }
     }
     
-    // الاستماع للتحديثات من Firebase
+    // الاستماع للتحديثات من Firebase وجلب الطلبات
     db.collection("orders").orderBy("timestamp", "desc").onSnapshot(snapshot => {
       ordersData = [];
       snapshot.forEach(doc => {
@@ -448,7 +504,7 @@
       console.error("خطأ في جلب الطلبات:", error);
     });
     
-    // عرض تفاصيل الطلب مع حقول لتعديل الحالة والملاحظات الإضافية
+    // دوال عرض تفاصيل الطلب وتحديث الحالة والطباعة
     function showOrderDetails(orderId) {
       const order = ordersData.find(o => o.id === orderId);
       if (order) {
@@ -470,10 +526,11 @@
           <div class="mb-3">
             <label for="newStatus" class="form-label">تغيير الحالة</label>
             <select id="newStatus" class="form-select">
-              <option value="موافقة" ${order.status==="موافقة" ? "selected" : ""}>موافقة</option>
-              <option value="تجهيز" ${order.status==="تجهيز" ? "selected" : ""}>تجهيز</option>
-              <option value="توصيل" ${order.status==="توصيل" ? "selected" : ""}>توصيل</option>
-              <option value="تسليم" ${order.status==="تسليم" ? "selected" : ""}>تسليم</option>
+              <option value="انتظار الموافقة" ${(order.status.trim() === "موافقة" || order.status.trim() === "انتظار الموافقة") ? "selected" : ""}>انتظار الموافقة</option>
+              <option value="تجهيز" ${order.status.trim() === "تجهيز" ? "selected" : ""}>تجهيز</option>
+              <option value="توصيل" ${order.status.trim() === "توصيل" ? "selected" : ""}>توصيل</option>
+              <!-- عند التغيير، يتم دائمًا اعتبارها "تم تسليم" -->
+              <option value="تم تسليم" ${(order.status.trim() === "تسليم" || order.status.trim() === "تم تسليم" || order.status.trim() === "تم التسليم") ? "selected" : ""}>تم تسليم</option>
             </select>
           </div>
           <div class="mb-3">
@@ -487,7 +544,6 @@
       }
     }
     
-    // تغيير حالة الطلب مع تحديث الملاحظات (ميزة إضافية)
     function changeOrderStatus() {
       const newStatus = document.getElementById("newStatus").value;
       const orderComment = document.getElementById("orderComment").value;
@@ -505,28 +561,7 @@
         .catch(error => { console.error("خطأ في تحديث الحالة:", error); });
       }
     }
-    function deleteOrder() {
-  if (currentOrderId) {
-    if (confirm("هل أنت متأكد من حذف هذا الطلب؟")) {
-      db.collection("orders").doc(currentOrderId).delete()
-      .then(() => {
-        console.log("تم حذف الطلب بنجاح");
-        // تحديث العرض بعد الحذف
-        renderOrders(document.getElementById("searchInput").value);
-        updateChart();
-        // إغلاق نافذة المودال
-        var modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
-        modal.hide();
-      })
-      .catch(error => {
-        console.error("خطأ في حذف الطلب:", error);
-      });
-    }
-  }
-}
-
     
-    // دالة لطباعة تفاصيل الطلب مع تصميم ورقة طباعة محسّن
     function printOrderDetails() {
       var content = document.getElementById("orderDetailsContent").innerHTML;
       var printWindow = window.open('', 'Print', 'height=600,width=800');
@@ -543,7 +578,7 @@
               li { padding: 5px 0; border-bottom: 1px dashed #ccc; }
               .status { font-weight: bold; }
               .status[data-status="تم تسليم"] { color: rgb(0, 128, 128); }
-              .status[data-status="موافقة"] { color: rgb(40, 167, 69); }
+              .status[data-status="انتظار الموافقة"] { color: rgb(40, 167, 69); }
               .status[data-status="تجهيز"] { color: rgb(255, 193, 7); }
               .status[data-status="توصيل"] { color: rgb(23, 162, 184); }
             </style>
@@ -560,6 +595,24 @@
       printWindow.focus();
       printWindow.print();
       printWindow.close();
+    }
+    
+    // دالة حذف الطلب
+    function deleteOrder() {
+      if (currentOrderId) {
+        if (confirm("هل أنت متأكد من حذف الطلب؟")) {
+          db.collection("orders").doc(currentOrderId).delete()
+            .then(() => {
+              console.log("تم حذف الطلب");
+              // إغلاق النافذة المنبثقة بعد الحذف
+              var modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
+              modal.hide();
+              renderOrders(document.getElementById("searchInput").value);
+              updateChart();
+            })
+            .catch(error => { console.error("خطأ في حذف الطلب:", error); });
+        }
+      }
     }
     
     // تبديل التبويبات بين الطلبات والتحليلات
@@ -595,5 +648,6 @@
       }
     });
   </script>
+  
 </body>
 </html>
